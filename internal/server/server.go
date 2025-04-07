@@ -22,8 +22,11 @@ func NewServer(address, port string) *Server {
 
 func (s *Server) Start(handlers *handlers.StorageHandlers) error {
 	s.router = http.NewServeMux()
-	s.router.HandleFunc("POST /update/gauge/", handlers.GaugeHandler)
-	s.router.HandleFunc("POST /update/counter/", handlers.CounterHandler)
+	s.router.HandleFunc("POST /update/gauge/", handlers.UpdateGaugeHandler)
+	s.router.HandleFunc("POST /update/counter/", handlers.UpdateCounterHandler)
+	s.router.HandleFunc("GET /value/gauge/", handlers.GetGaugeHandler)
+	s.router.HandleFunc("GET /value/counter/", handlers.GetCounterHandler)
+	s.router.HandleFunc("GET /", handlers.GetAllMetricsHandler)
 	s.server = &http.Server{
 		Addr:    s.address + s.port,
 		Handler: s.router,

@@ -1,16 +1,17 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"math/rand/v2"
 	"net/http"
 	"runtime"
 	"strconv"
 	"sync"
 	"time"
-)
 
-var PollInterval = 2 * time.Second
-var ReportInterval = 10 * time.Second
+	"github.com/Nikita213-hub/metricsAndAlerts/cmd/flags"
+)
 
 type MetWrapper struct {
 	Rt             runtime.MemStats
@@ -120,16 +121,33 @@ func strartRepoerting(metrics *Metrics, host string) {
 	}
 }
 
+var REPORT_INTERVAL_FLAG int
+var POLL_INTERVAL_FLAG int
+
+var ADDR string
+var PORT string
+
+var PollInterval time.Duration
+var ReportInterval time.Duration
+
 func main() {
+	addr := flags.NewAddress("localhost", "8080")
+	_ = flag.Value(addr)
+	flag.IntVar(&POLL_INTERVAL_FLAG, "p", 2, "Poll interval")
+	flag.IntVar(&REPORT_INTERVAL_FLAG, "r", 10, "Report interval")
+	flag.Var(addr, "a", "Address in host:port format")
+	flag.Parse()
+
+	fmt.Println(POLL_INTERVAL_FLAG, REPORT_INTERVAL_FLAG)
 	metrics := newMetrics()
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go metrics.StartMetricsCollection()
-	go strartRepoerting(metrics, "http://localhost:8080")
-	go func() {
-		time.Sleep(60 * time.Second)
-		wg.Done()
-		wg.Done()
-	}()
+	go strartRepoerting(metrics, addr.String())
+	// go func() {
+	// 	time.Sleep(60 * time.Second)
+	// 	wg.Done()
+	// 	wg.Done()
+	// }()
 	wg.Wait()
 }

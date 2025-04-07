@@ -35,3 +35,12 @@ func GetMetricDataFromUri[V int64 | float64](url string) (key string, val V, err
 		return "", 0, errors.New("incorrect metric type was providen")
 	}
 }
+
+func GetMetricKeyFromUrl(url string) (string, error) {
+	splittedUrl := strings.Split(url, "/")
+	if len(splittedUrl) != 4 {
+		return "", errors.New("incorrect data has been provided")
+	}
+	return splittedUrl[3], nil
+
+}
