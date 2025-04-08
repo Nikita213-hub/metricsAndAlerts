@@ -1,12 +1,15 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"os"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,7 +45,7 @@ func (m *Metrics) StartMetricsCollection() error {
 		m.mem.FreeMemory = float64(23)
 		m.mem.RandomValue = rand.Float64()
 		m.mx.Unlock()
-		time.Sleep(PollInterval)
+		time.Sleep(time.Duration(POLL_INTERVAL_FLAG) * time.Second)
 	}
 }
 
@@ -96,6 +99,9 @@ func (ms *Metrics) GetMap() map[string]float64 {
 }
 
 func sendReport(url string) error {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "http://" + url
+	}
 	req, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
 		return err
@@ -103,6 +109,7 @@ func sendReport(url string) error {
 	req.Header.Set("Content-Type", "text/plain")
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	defer res.Body.Close()
@@ -117,7 +124,7 @@ func strartRepoerting(metrics *Metrics, host string) {
 			sendReport(url)
 		}
 		sendReport(host + "/update/counter/PollCount/1")
-		time.Sleep(ReportInterval)
+		time.Sleep(time.Duration(REPORT_INTERVAL_FLAG) * time.Second)
 	}
 }
 
@@ -127,15 +134,27 @@ var POLL_INTERVAL_FLAG int
 var ADDR string
 var PORT string
 
-var PollInterval time.Duration
-var ReportInterval time.Duration
-
 func main() {
 	addr := flags.NewAddress("localhost", "8080")
 	_ = flag.Value(addr)
-	flag.IntVar(&POLL_INTERVAL_FLAG, "p", 2, "Poll interval")
-	flag.IntVar(&REPORT_INTERVAL_FLAG, "r", 10, "Report interval")
-	flag.Var(addr, "a", "Address in host:port format")
+	if val, ok := os.LookupEnv("POLL_INTERVAL"); ok {
+		v, err := strconv.Atoi(val)
+		if err != nil {
+			panic(errors.New("incorrect env var"))
+		}
+		POLL_INTERVAL_FLAG = v
+	} else {
+		flag.IntVar(&POLL_INTERVAL_FLAG, "p", 2, "Poll interval")
+	}
+	if val, ok := os.LookupEnv("REPORT_INTERVAL"); ok {
+		v, err := strconv.Atoi(val)
+		if err != nil {
+			panic(errors.New("incorrect env var"))
+		}
+		REPORT_INTERVAL_FLAG = v
+	} else {
+		flag.IntVar(&REPORT_INTERVAL_FLAG, "r", 10, "Report interval")
+	}
 	flag.Parse()
 
 	fmt.Println(POLL_INTERVAL_FLAG, REPORT_INTERVAL_FLAG)

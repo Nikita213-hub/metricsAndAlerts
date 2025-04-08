@@ -43,6 +43,7 @@ func (s *StorageHandlers) UpdateGaugeHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *StorageHandlers) UpdateCounterHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("hello")
 	k, v, err := helpers.GetMetricDataFromUri[int64](r.URL.Path)
 	if err != nil {
 		fmt.Println(err)
