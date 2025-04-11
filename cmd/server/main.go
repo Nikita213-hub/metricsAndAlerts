@@ -9,6 +9,7 @@ import (
 
 	"github.com/Nikita213-hub/metricsAndAlerts/cmd/flags"
 	"github.com/Nikita213-hub/metricsAndAlerts/handlers"
+	"github.com/Nikita213-hub/metricsAndAlerts/internal/logger"
 	"github.com/Nikita213-hub/metricsAndAlerts/internal/server"
 	memstorage "github.com/Nikita213-hub/metricsAndAlerts/internal/storage/memStorage"
 )
@@ -19,6 +20,7 @@ type AddressVal struct {
 }
 
 func main() {
+	logger.Init("EBLAN")
 	strg := memstorage.NewMemStorage()
 	handlers := handlers.NewStorageHandlers(strg)
 	var address AddressVal
