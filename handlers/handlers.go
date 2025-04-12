@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/Nikita213-hub/metricsAndAlerts/internal/helpers"
+	"github.com/Nikita213-hub/metricsAndAlerts/internal/models"
 	"github.com/Nikita213-hub/metricsAndAlerts/internal/storage"
 )
 
@@ -20,6 +23,86 @@ func NewStorageHandlers(strg storage.Storage) *StorageHandlers {
 	}
 }
 
+func (s *StorageHandlers) UpdateMetricHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData models.Metrics
+	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(501)
+		return
+	}
+	resData := models.Metrics{}
+	switch reqData.MType {
+	case "gauge":
+		v, err := s.strg.UpadateGauge(reqData.ID, *reqData.Value)
+		if err != nil {
+			slog.Error("Error while updating metric", "metric_type", reqData.MType, "metric_id", reqData.ID)
+			w.WriteHeader(501)
+			return
+		}
+		resData.Value = &v
+	case "counter":
+		v, err := s.strg.UpadateCounter(reqData.ID, int64(*reqData.Delta))
+		if err != nil {
+			slog.Error("Error while updating metric", "metric_type", reqData.MType, "metric_id", reqData.ID)
+			w.WriteHeader(501)
+			return
+		}
+		vf := float64(v)
+		resData.Value = &vf
+	default:
+		slog.Info("Incorrect metric type", "metric_type", reqData.MType)
+		w.WriteHeader(501)
+		return
+	}
+	resData.ID = reqData.ID
+	resData.MType = reqData.MType
+	if err := json.NewEncoder(w).Encode(resData); err != nil {
+		slog.Info("Encoding", "metric_type", reqData.MType)
+		w.WriteHeader(501)
+		return
+	}
+}
+
+func (s *StorageHandlers) GetMetricHandler(w http.ResponseWriter, r *http.Request) {
+	var reqData models.Metrics
+	if err := json.NewDecoder(r.Body).Decode(&reqData); err != nil {
+		slog.Error(err.Error())
+		w.WriteHeader(501)
+		return
+	}
+	resData := models.Metrics{}
+	switch reqData.MType {
+	case "gauge":
+		v, err := s.strg.GetGauge(reqData.ID)
+		if err != nil {
+			slog.Error("Error while updating metric", "metric_type", reqData.MType, "metric_id", reqData.ID)
+			w.WriteHeader(501)
+			return
+		}
+		resData.Value = &v
+	case "counter":
+		v, err := s.strg.GetCounter(reqData.ID)
+		if err != nil {
+			slog.Error("Error while updating metric", "metric_type", reqData.MType, "metric_id", reqData.ID)
+			w.WriteHeader(501)
+			return
+		}
+		vf := float64(v)
+		resData.Value = &vf
+	default:
+		slog.Info("Incorrect metric type", "metric_type", reqData.MType)
+		w.WriteHeader(501)
+		return
+	}
+	resData.ID = reqData.ID
+	resData.MType = reqData.MType
+	if err := json.NewEncoder(w).Encode(resData); err != nil {
+		slog.Info("Encoding error", "metric_type", reqData.MType)
+		w.WriteHeader(501)
+		return
+	}
+}
+
 func (s *StorageHandlers) UpdateGaugeHandler(w http.ResponseWriter, r *http.Request) {
 	k, v, err := helpers.GetMetricDataFromUri[float64](r.URL.Path)
 	if err != nil {
@@ -27,7 +110,7 @@ func (s *StorageHandlers) UpdateGaugeHandler(w http.ResponseWriter, r *http.Requ
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = s.strg.UpadateGauge(k, v)
+	_, err = s.strg.UpadateGauge(k, v)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -50,7 +133,7 @@ func (s *StorageHandlers) UpdateCounterHandler(w http.ResponseWriter, r *http.Re
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = s.strg.UpadateCounter(k, v)
+	_, err = s.strg.UpadateCounter(k, v)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

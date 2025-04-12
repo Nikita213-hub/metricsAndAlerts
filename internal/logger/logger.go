@@ -42,7 +42,7 @@ func newLrw(rw http.ResponseWriter) *LoggingResWriter {
 
 var Log *slog.Logger
 
-func Init(level string) {
+func Init() {
 	Log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(Log)
 }

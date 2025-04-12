@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -20,7 +20,7 @@ type AddressVal struct {
 }
 
 func main() {
-	logger.Init("EBLAN")
+	logger.Init()
 	strg := memstorage.NewMemStorage()
 	handlers := handlers.NewStorageHandlers(strg)
 	var address AddressVal
@@ -39,10 +39,12 @@ func main() {
 		address.Host = addr.GetHost()
 		address.Port = addr.GetPort()
 	}
-	fmt.Println(address)
+
+	slog.Info("Server is started listening", "address", address.Host+":"+address.Port)
 	server := server.NewServer(address.Host, ":"+address.Port)
 	err := server.Start(handlers)
 	if err != nil {
+		slog.Error(err.Error())
 		panic(err)
 	}
 }

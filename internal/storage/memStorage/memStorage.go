@@ -41,26 +41,26 @@ func (ms *MemStorage) GetCounter(key string) (int64, error) {
 	return v, nil
 }
 
-func (m *MemStorage) UpadateGauge(key string, val float64) error {
+func (m *MemStorage) UpadateGauge(key string, val float64) (float64, error) {
 	m.gmx.Lock()
 	defer m.gmx.Unlock()
 	m.gauge[key] = val
-	_, ok := m.gauge[key]
+	updated, ok := m.gauge[key]
 	if !ok {
-		return errors.New("error while updating gauge metric type occured")
+		return 0, errors.New("error while updating gauge metric type occured")
 	}
-	return nil
+	return updated, nil
 }
 
-func (m *MemStorage) UpadateCounter(key string, val int64) error {
+func (m *MemStorage) UpadateCounter(key string, val int64) (int64, error) {
 	m.cmx.Lock()
 	defer m.cmx.Unlock()
 	m.counter[key] += val
-	_, ok := m.counter[key]
+	updated, ok := m.counter[key]
 	if !ok {
-		return errors.New("error while updating counter metric type occured")
+		return 0, errors.New("error while updating counter metric type occured")
 	}
-	return nil
+	return updated, nil
 }
 
 func (m *MemStorage) GetAllMetrics() (map[string]float64, map[string]int64, error) {
