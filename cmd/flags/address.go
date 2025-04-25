@@ -43,3 +43,22 @@ func (a *Address) GetHost() string {
 func (a *Address) GetPort() string {
 	return a.port
 }
+
+type Flag struct {
+	val string
+}
+
+func NewFlag(val string) *Flag {
+	return &Flag{
+		val: val,
+	}
+}
+
+func (f *Flag) String() string {
+	return f.val
+}
+
+func (f *Flag) Set(s string) error {
+	f.val = s
+	return nil
+}

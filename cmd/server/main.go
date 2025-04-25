@@ -3,9 +3,12 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Nikita213-hub/metricsAndAlerts/cmd/flags"
 	"github.com/Nikita213-hub/metricsAndAlerts/handlers"
@@ -39,7 +42,29 @@ func main() {
 		address.Host = addr.GetHost()
 		address.Port = addr.GetPort()
 	}
-
+	var sInterval uint64
+	if envSInterval, ok := os.LookupEnv("STORE_INTERVAL"); ok {
+		val, err := strconv.Atoi(envSInterval)
+		if err != nil {
+			panic(errors.New("incorrect env var"))
+		}
+		sInterval = uint64(val)
+	} else {
+		sIntervalFlag := flags.NewFlag("10")
+		flag.Var(sIntervalFlag, "i", "Save metrics in file interval in seconds")
+		flag.Parse()
+		val, err := strconv.Atoi(sIntervalFlag.String())
+		if err != nil {
+			panic(errors.New("incorrect env var"))
+		}
+		sInterval = uint64(val)
+	}
+	// what must constructor return interface or structure
+	w, ok := strg.(*memstorage.MemStorage)
+	if ok {
+		fmt.Println(w)
+		w.EnableSaves("metrics.json", time.Duration(sInterval)*time.Second)
+	}
 	slog.Info("Server is started listening", "address", address.Host+":"+address.Port)
 	server := server.NewServer(address.Host, ":"+address.Port)
 	err := server.Start(handlers)
