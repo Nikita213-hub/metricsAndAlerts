@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/Nikita213-hub/metricsAndAlerts/cmd/flags"
 	"github.com/Nikita213-hub/metricsAndAlerts/handlers"
+	"github.com/Nikita213-hub/metricsAndAlerts/internal/db"
+	"github.com/Nikita213-hub/metricsAndAlerts/internal/helpers"
 	"github.com/Nikita213-hub/metricsAndAlerts/internal/logger"
 	"github.com/Nikita213-hub/metricsAndAlerts/internal/server"
 	memstorage "github.com/Nikita213-hub/metricsAndAlerts/internal/storage/memStorage"
@@ -65,9 +68,19 @@ func main() {
 		fmt.Println(w)
 		w.EnableSaves("metrics.json", time.Duration(sInterval)*time.Second)
 	}
+
+	ctx, _ := context.WithCancel(context.Background()) // shouldnt ignore cancel sig, but now i dont have functional to process it :(
+	db := db.NewDatabase("localhost", "postgres", "123", "metrics_and_alerts", false)
+	err := helpers.WithRetry(ctx, 5, 3*time.Second, db.Run)
+	if err != nil {
+		slog.Error(err.Error())
+		panic(err)
+	}
 	slog.Info("Server is started listening", "address", address.Host+":"+address.Port)
 	server := server.NewServer(address.Host, ":"+address.Port)
-	err := server.Start(handlers)
+	err = helpers.WithRetry(ctx, 5, 3*time.Second, func() error {
+		return server.Start(handlers)
+	})
 	if err != nil {
 		slog.Error(err.Error())
 		panic(err)
