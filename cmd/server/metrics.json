@@ -1,1 +1,1 @@
-{"counter":{},"gauge":{}}
+{"counter":{"PollCount":3},"gauge":{"Alloc":856816,"BuckHashSys":2929,"Frees":132,"GCCPUFraction":0,"GCSys":1768264,"HeapAlloc":856816,"HeapIdle":2441216,"HeapInuse":1425408,"HeapObjects":4544,"HeapReleased":2310144,"HeapSys":3866624,"LastGC":0,"Lookups":0,"MCacheInuse":2400,"MCacheSys":15600,"MSpanInuse":34880,"MSpanSys":48960,"Mallocs":4676,"NextGC":4194304,"NumForcedGC":0,"NumGC":0,"OtherSys":612647,"PauseTotalNs":0,"RandomValue":30.788530662435704,"StackInuse":327680,"StackSys":327680,"Sys":6642704,"TotalAlloc":856816}}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	gzip_local "github.com/Nikita213-hub/metricsAndAlerts/cmd/gzip"
+	hashsign "github.com/Nikita213-hub/metricsAndAlerts/cmd/hashSign"
 	"github.com/Nikita213-hub/metricsAndAlerts/handlers"
 	"github.com/Nikita213-hub/metricsAndAlerts/internal/logger"
 )
@@ -24,7 +25,7 @@ func NewServer(address, port string) *Server {
 
 func (s *Server) Start(handlers *handlers.StorageHandlers) error {
 	s.router = http.NewServeMux()
-	s.router.HandleFunc("POST /update/", handlers.UpdateMetricHandler)
+	s.router.HandleFunc("POST /update/", hashsign.WithHash(handlers.UpdateMetricHandler))
 	s.router.HandleFunc("POST /value/", handlers.GetMetricHandler)
 	s.router.Handle("GET /", logger.WithLogger(gzip_local.WithGzip(handlers.GetAllMetricsHandler)))
 	s.server = &http.Server{
