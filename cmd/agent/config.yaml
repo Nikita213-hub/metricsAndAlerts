@@ -1,0 +1,8 @@
+#Agent
+agent:
+  poll_interval: 10
+  report_interval: 10
+  rate_limit: 5
+#Host
+host:
+  address: "localhost:8080"

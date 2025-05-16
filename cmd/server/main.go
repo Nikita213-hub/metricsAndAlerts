@@ -69,7 +69,7 @@ func main() {
 		w.EnableSaves("metrics.json", time.Duration(sInterval)*time.Second)
 	}
 
-	ctx, _ := context.WithCancel(context.Background()) // shouldnt ignore cancel sig, but now i dont have functional to process it :(
+	ctx, _ := context.WithCancel(context.Background()) // shouldnt ignore cancelation sig, but now i dont have functional to process it :(
 	db := db.NewDatabase("localhost", "postgres", "123", "metrics_and_alerts", false)
 	err := helpers.WithRetry(ctx, 5, 3*time.Second, db.Run)
 	if err != nil {
