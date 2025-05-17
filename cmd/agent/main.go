@@ -6,6 +6,13 @@ import (
 
 func main() {
 	agent := NewAgent()
-	agent.Configure()
+	err := agent.Configure()
+	if err != nil {
+		panic(err)
+	}
+	err = agent.Run()
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("%v\n", *agent.Cfg)
 }

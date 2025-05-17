@@ -5,4 +5,5 @@ agent:
   rate_limit: 5
 #Host
 host:
-  address: "localhost:8080"
+  address: "http://localhost:8080"
+  private_key: "my_private_key"
